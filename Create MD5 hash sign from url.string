@@ -1,0 +1,28 @@
+// Use only as Pre-request script
+// For a first - parsing from locale Environment cid (cliend-ID) and sig(secret key string)
+
+const cid_env = pm.variables.get('cid');
+const sig_env = pm.variables.get('sig');
+const secret = pm.variables.get('secret');
+
+// Next step - parse URL string
+let request_data = pm.request.url.getQueryString();
+
+// Delete useless/wrong parametres
+let req_data = request_data.replace('&sig={{sig}}',"").replace('cid={{cid}}',"");
+// Add client ID in string back
+let ins_string = req_data.concat('&cid='+ cid_env).split('&').sort().join('&');
+// Add & into start of string
+let url_string = ins_string.replace('&cid=' + cid_env, 'cid=' + cid_env)
+
+// Function MD5 hash generate
+function getSig(url_string, secret){
+  let hash = CryptoJS.MD5(url_string + secret).toString();
+  return hash;
+}
+let sig = getSig(url_string, secret)
+
+// Set new value of sig
+pm.environment.set("sig", sig);
+
+// Request
