@@ -1,0 +1,28 @@
+// 0. Достаем параметры из окружения
+const sign_env = pm.variables.get("sign");
+const secret = pm.variables.get("secret_key");
+
+// 1. Парсинг URL как строку
+let request_data = pm.request.url.getQueryString();
+
+// 2. Убираем из строки конструкции postman которые достают значения из Environment
+let req_data = request_data.replace('&sign={{sign}}',"")
+
+// Сортируем перед формированием подписи 
+let pre_url = req_data.split('&').sort().join('&')
+
+// Функция создания sig подписи
+function getSig(pre_url, secret){
+  let hash = CryptoJS.MD5(pre_url + secret).toString();
+  return hash;
+}
+
+//Запускаем функцию
+let sign = getSig(pre_url, secret)
+console.log(sign)
+
+// Устанавливаем новое значение переменной в Environment после чего она уходит с нашим запросом
+pm.environment.set("sign", sign);
+
+
+
